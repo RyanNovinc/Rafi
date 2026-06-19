@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LSA Day Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#1C2B33; --ink-soft:#5C6B73; --ink-faint:#8A969C;
+    --line:#DDE3E0; --line-soft:#E9EDEB;
+    --paper:#F4F6F4; --panel:#FFFFFF; --cell:#FBFCFB;
+    --petrol:#0F6E72; --petrol-deep:#0A5458;
+    --violet:#6A4FB0; --violet-bg:#EFEAF8;
+    --amber:#9A6310; --amber-bg:#FBEFD9;
+    --red:#A8362B; --red-bg:#F7E4E0;
+    --green:#1B7355; --green-bg:#E1F0E9;
+    --slate:#5E6B72; --slate-bg:#EDF1F1;
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 1px 2px rgba(28,43,51,.05), 0 8px 24px rgba(28,43,51,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1280px;margin:0 auto;padding:22px 20px 80px;}
+
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line);}
+  .brand h1{font-family:"Archivo",sans-serif;font-weight:800;font-size:26px;letter-spacing:-.01em;margin:0;line-height:1;display:flex;align-items:center;gap:11px;}
+  .mark{width:30px;height:30px;border-radius:8px;background:var(--petrol);display:inline-grid;place-items:center;flex:none;}
+  .mark span{font-family:"IBM Plex Mono",monospace;color:#fff;font-weight:600;font-size:13px;letter-spacing:.02em;}
+  .brand p{margin:7px 0 0;color:var(--ink-soft);font-size:13px;max-width:52ch;}
+
+  .topright{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+  .datebox{text-align:right;}
+  .datebox .dow{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;}
+  .datebox .full{color:var(--ink-soft);font-size:12.5px;}
+  .toprow{display:flex;gap:8px;align-items:center;}
+  .pill{display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--ink);transition:border-color .15s, background .15s;}
+  .pill:hover{border-color:var(--ink-faint);}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+  .pill.has-gaps .dot{background:var(--red);}
+  .pill.has-gaps{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+  .ghost{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit;}
+  .ghost:hover{color:var(--ink);border-color:var(--ink-faint);}
+
+  .daytabs{display:flex;gap:6px;margin:18px 0 6px;flex-wrap:wrap;}
+  .daytab{font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);border-radius:999px;padding:7px 16px;cursor:pointer;transition:all .14s;}
+  .daytab:hover{color:var(--ink);border-color:var(--ink-faint);}
+  .daytab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .statusline{font-size:12.5px;color:var(--ink-soft);margin:4px 2px 16px;}
+  .statusline b{color:var(--ink);font-weight:600;}
+
+  .grid2{display:grid;grid-template-columns:288px 1fr;gap:20px;align-items:start;}
+  @media(max-width:920px){ .grid2{grid-template-columns:1fr;} }
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px;}
+  .card-h{padding:14px 16px 12px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .card-h h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;margin:0;color:var(--ink);}
+  .card-h .sub{font-size:11.5px;color:var(--ink-faint);}
+
+  .roster{padding:7px;}
+  .lsarow{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:var(--radius-sm);}
+  .lsarow + .lsarow{border-top:1px solid var(--line-soft);}
+  .lsarow .meta{flex:1;min-width:0;}
+  .lsarow .nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;}
+  .contract{font-size:10.5px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace;}
+  .skills{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+  .tag{font-size:10px;font-weight:600;color:var(--petrol-deep);background:#E7F1F1;border-radius:5px;padding:2px 6px;line-height:1.3;}
+  .tag.k{background:var(--violet-bg);color:var(--violet);}
+
+  .tg{position:relative;width:42px;height:24px;flex:none;cursor:pointer;}
+  .tg input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .tg .track{position:absolute;inset:0;background:#D3DAD8;border-radius:999px;transition:background .16s;}
+  .tg .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s;}
+  .tg input:checked + .track{background:var(--amber);}
+  .tg input:checked ~ .knob{transform:translateX(18px);}
+  .tg input:focus-visible + .track{outline:2px solid var(--petrol);outline-offset:2px;}
+  .lsarow.away .meta{opacity:.55;}
+  .away-flag{font-size:10px;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:5px;padding:2px 6px;letter-spacing:.03em;}
+
+  .panelbody{padding:13px;display:flex;flex-direction:column;gap:11px;}
+  .empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:14px 12px;}
+  .empty strong{color:var(--green);}
+  .seclabel{font-family:"Archivo",sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);margin:2px 0 -2px;}
+  .alert{border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:10px 12px;background:var(--panel);}
+  .alert.high{border-left-color:var(--red);}
+  .alert.med{border-left-color:var(--amber);}
+  .alert.ok{border-left-color:var(--green);}
+  .alert.info{border-left-color:var(--slate);}
+  .alert .who{font-family:"Archivo",sans-serif;font-weight:700;font-size:14px;}
+  .alert .need{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .alert .body{font-size:12.5px;margin-top:7px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .pchip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;border-radius:5px;padding:1px 6px;}
+  .pchip.esc{background:var(--red-bg);color:var(--red);}
+  .pchip.ok{background:var(--green-bg);color:var(--green);}
+  .pchip.amb{background:var(--amber-bg);color:var(--amber);}
+  .exnote{font-size:11px;color:var(--amber);margin-top:6px;font-style:italic;}
+  .reason{font-size:11.5px;color:var(--ink-soft);}
+
+  /* compliance */
+  .comp{padding:13px;display:flex;flex-direction:column;gap:12px;}
+  .crow .ctop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .crow .cname{font-weight:600;font-size:13.5px;}
+  .crow .cneed{font-size:11px;color:var(--ink-faint);}
+  .crow .cnum{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;}
+  .bar{height:7px;border-radius:4px;background:#E8ECEA;margin-top:6px;overflow:hidden;}
+  .bar > i{display:block;height:100%;border-radius:4px;background:var(--green);}
+  .crow.short .bar > i{background:var(--red);}
+  .cflag{font-size:11px;margin-top:5px;font-weight:600;}
+  .crow.short .cflag{color:var(--red);}
+  .crow.full .cflag{color:var(--green);}
+
+  .boardwrap{overflow-x:auto;border-radius:var(--radius);}
+  table.board{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;}
+  table.board th, table.board td{text-align:left;vertical-align:top;}
+  table.board thead th{position:sticky;top:0;z-index:3;background:var(--panel);font-family:"Archivo",sans-serif;font-weight:700;font-size:11px;letter-spacing:.03em;color:var(--ink-soft);padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.board thead th .pt{display:block;color:var(--ink-faint);font-weight:500;font-family:"IBM Plex Mono",monospace;font-size:10px;margin-top:2px;}
+  th.brk-col, td.brk-col{background:#F6F8F7;}
+  .corner{position:sticky;left:0;z-index:4;background:var(--panel);border-right:1px solid var(--line);min-width:140px;}
+  td.namecell{position:sticky;left:0;z-index:2;background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line-soft);padding:10px;cursor:pointer;min-width:140px;}
+  td.namecell:hover{background:#F3F7F6;}
+  td.namecell .nm{font-weight:600;font-size:13.5px;}
+  td.namecell .ct{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-faint);}
+  tr.lsa-away td.namecell .nm{color:var(--amber);}
+  tr.lsa-away td.namecell{background:var(--amber-bg);}
+
+  td.slot{border-bottom:1px solid var(--line-soft);border-left:1px solid var(--line-soft);padding:8px 9px;background:var(--cell);min-width:122px;}
+  .blk{border-radius:8px;padding:7px 8px;border:1px solid transparent;min-height:48px;}
+  .blk .rm{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12.5px;letter-spacing:.01em;}
+  .blk .sj{font-size:11.5px;color:var(--ink-soft);margin-top:1px;}
+  .blk .st{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:10.5px;font-weight:600;border-radius:5px;padding:1px 6px;}
+
+  .blk.oto{background:var(--violet-bg);border-color:#E0D6F2;}
+  .blk.oto .rm{color:var(--violet);}
+  .blk.oto .st{background:#fff;color:var(--violet);border:1px solid #E0D6F2;}
+  .blk.class{background:var(--cell);border-color:var(--line-soft);}
+  .blk.class .st{background:#EAF2F2;color:var(--petrol-deep);}
+  .blk.yard{background:var(--slate-bg);border-color:#E3E8E8;}
+  .blk.yard .rm{color:var(--slate);}
+  .blk.yard .sj{color:var(--slate);}
+  .blk.backup{background:#FFFDF7;border-color:#EDE6D4;}
+  .blk.backup .rm{color:#8a7320;}
+  .blk.backup .sj{color:#9a874a;}
+  .blk.backup .st{background:#F6EFD9;color:#8a7320;}
+  .blk.prep{background:repeating-linear-gradient(135deg,#F4F6F5,#F4F6F5 6px,#EFF2F1 6px,#EFF2F1 12px);border-color:var(--line-soft);}
+  .blk.prep .rm{color:var(--ink-faint);}
+  .blk.prep .sj{color:var(--ink-faint);}
+  .blk.off{background:transparent;border:1px dashed var(--line);}
+  .blk.off .rm{color:var(--ink-faint);}
+  .blk.off .sj{color:var(--ink-faint);}
+
+  .blk.covered{background:var(--green-bg);border-color:#C5E2D4;}
+  .blk.covered .rm{color:var(--green);}
+  .blk.covered .st{background:#fff;color:var(--green);border:1px solid #C5E2D4;}
+  .blk.covering{background:#EAF4F0;border:1px dashed var(--green);}
+  .blk.covering .rm{color:var(--green);}
+  .blk.covering .badge2{display:block;margin-top:5px;font-size:9.5px;font-weight:700;color:var(--green);letter-spacing:.02em;text-transform:uppercase;}
+  .blk.cover-gap{background:var(--red-bg);border-color:#EBCFC9;}
+  .blk.cover-gap .rm{color:var(--red);}
+  .blk.cover-gap .sj{color:var(--red);}
+  .blk.cover-gap .needcover{display:block;margin-top:5px;font-size:9.5px;font-weight:700;color:var(--red);letter-spacing:.02em;}
+  .blk.dim{opacity:.4;}
+  .covered .st small{font-weight:500;opacity:.85;}
+
+  .legend{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:12px;color:var(--ink-soft);}
+  .lg{display:inline-flex;align-items:center;gap:7px;}
+  .sw{width:13px;height:13px;border-radius:4px;border:1px solid var(--line);flex:none;}
+  .sw.oto{background:var(--violet-bg);border-color:#E0D6F2;}
+  .sw.class{background:var(--cell);}
+  .sw.yard{background:var(--slate-bg);}
+  .sw.backup{background:#FFFDF7;border-color:#EDE6D4;}
+  .sw.prep{background:repeating-linear-gradient(135deg,#F4F6F5,#F4F6F5 4px,#EFF2F1 4px,#EFF2F1 8px);}
+  .sw.covering{background:#EAF4F0;border:1px dashed var(--green);}
+  .sw.gap{background:var(--red-bg);border-color:#EBCFC9;}
+
+  .scrim{position:fixed;inset:0;background:rgba(20,30,35,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:50;}
+  .scrim.open{display:flex;}
+  .sheet{background:var(--panel);border-radius:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(20,30,35,.3);animation:rise .2s ease;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .sheet-h{padding:18px 20px 14px;border-bottom:1px solid var(--line-soft);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--panel);}
+  .sheet-h h3{font-family:"Archivo",sans-serif;font-weight:800;font-size:19px;margin:0;}
+  .sheet-h .dyc{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .closeb{border:none;background:#EEF2F1;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--ink-soft);flex:none;}
+  .closeb:hover{background:#E2E8E6;}
+  .daylist{padding:10px 16px 20px;}
+  .dl{display:flex;gap:12px;padding:11px 6px;border-bottom:1px solid var(--line-soft);}
+  .dl:last-child{border-bottom:none;}
+  .dl .tm{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint);width:50px;flex:none;padding-top:2px;}
+  .dl .pd{font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;width:42px;flex:none;padding-top:1px;}
+  .dl .info .rm{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;}
+  .dl .info .sj{font-size:12.5px;color:var(--ink-soft);}
+  .dl .info .badge{display:inline-block;margin-top:4px;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 7px;}
+  .badge.oto{background:var(--violet-bg);color:var(--violet);}
+  .badge.yard{background:var(--slate-bg);color:var(--slate);}
+  .badge.gap{background:var(--red-bg);color:var(--red);}
+  .badge.cov{background:var(--green-bg);color:var(--green);}
+
+  .foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint);max-width:74ch;}
+  kbd{font-family:"IBM Plex Mono",monospace;background:#EEF2F1;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:11px;}
+
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--petrol);margin-bottom:7px;}
+
+  .searchbar{padding:0 10px 8px;}
+  .searchbar input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px;color:var(--ink);background:#FBFCFB;}
+  .searchbar input:focus{outline:2px solid var(--petrol);outline-offset:0;border-color:var(--petrol);}
+  .roster{max-height:430px;overflow-y:auto;}
+  .nomatch{padding:14px 12px;text-align:center;color:var(--ink-faint);font-size:12.5px;}
+
+  .boardfilter{display:inline-flex;gap:4px;}
+  .fbtn{font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);border-radius:999px;padding:5px 11px;cursor:pointer;transition:all .14s;}
+  .fbtn:hover{color:var(--ink);border-color:var(--ink-faint);}
+  .fbtn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  td.slot.editable{cursor:pointer;}
+  td.slot.editable:hover .blk{outline:2px solid var(--petrol);outline-offset:1px;}
+  .edot{display:inline-block;margin-left:5px;font-size:9.5px;color:var(--petrol);font-weight:700;}
+  .blk.relief{background:#E8EEF6;border-color:#CdD9EC;}
+  .blk.relief .rm{color:#3C5A86;}
+  .blk.relief .sj{color:#3C5A86;}
+  .blk.relief .st{background:#fff;color:#3C5A86;border:1px solid #CdD9EC;}
+  .blk.relief .badge2{display:block;margin-top:5px;font-size:9.5px;font-weight:700;color:#3C5A86;letter-spacing:.02em;text-transform:uppercase;}
+
+  .abody{padding:6px 16px 18px;}
+  .asec{font-family:"Archivo",sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);margin:14px 0 7px;}
+  .acand{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--panel);cursor:pointer;font-family:inherit;margin-bottom:6px;transition:border-color .12s, background .12s;}
+  .acand:hover{border-color:var(--petrol);background:#F7FAFA;}
+  .acand .anm{font-weight:600;font-size:13.5px;color:var(--ink);}
+  .acand .atag{font-size:10.5px;font-weight:600;border-radius:5px;padding:2px 7px;}
+  .acand .atag.q{background:var(--green-bg);color:var(--green);}
+  .acand .atag.w{background:var(--amber-bg);color:var(--amber);}
+  .acand .askills{font-size:10.5px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace;margin-top:2px;}
+  .areliefrow{display:flex;gap:8px;margin-top:6px;}
+  .areliefrow input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13px;}
+  .areliefrow button, .aclear{font-family:"Archivo",sans-serif;font-weight:600;font-size:12.5px;border-radius:9px;padding:9px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;}
+  .aclear{display:inline-block;margin-top:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);}
+  .aclear:hover{border-color:var(--ink-faint);color:var(--ink);}
+  .ahint{font-size:11.5px;color:var(--ink-faint);margin:2px 0 0;}
+
+  .blk.excursion{background:#FBF1E4;border-color:#EEDCC2;}
+  .blk.excursion .rm{color:#8a6a2f;}
+  .blk.excursion .sj{color:#a07f45;}
+  .blk.freed{background:#EAF4F0;border:1px dashed #9DCBBA;}
+  .blk.freed .rm{color:var(--green);}
+  .blk.freed .sj{color:var(--green);}
+
+  #manageBtn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  #adminView{margin-top:6px;}
+  .admintabs{display:flex;gap:6px;margin:6px 0 20px;flex-wrap:wrap;}
+  .atab{font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);border-radius:999px;padding:8px 18px;cursor:pointer;}
+  .atab:hover{color:var(--ink);border-color:var(--ink-faint);}
+  .atab.active{background:var(--petrol);color:#fff;border-color:var(--petrol);}
+  .adminhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+  .adminhead h2{font-family:"Archivo",sans-serif;font-weight:800;font-size:20px;margin:0;}
+  .adminhead .tools{display:flex;gap:8px;flex-wrap:wrap;}
+  .btnp{font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;border-radius:9px;padding:9px 15px;cursor:pointer;border:1px solid var(--petrol);background:var(--petrol);color:#fff;}
+  .btnp:hover{background:var(--petrol-deep);border-color:var(--petrol-deep);}
+  .btns{font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;border-radius:9px;padding:9px 15px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);}
+  .btns:hover{border-color:var(--ink-faint);}
+  table.adgrid{border-collapse:separate;border-spacing:0;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  table.adgrid th{font-family:"Archivo",sans-serif;font-weight:700;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-soft);text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);background:#FAFBFA;}
+  table.adgrid td{padding:11px 14px;border-bottom:1px solid var(--line-soft);font-size:13.5px;vertical-align:middle;color:var(--ink);}
+  table.adgrid tr:last-child td{border-bottom:none;}
+  table.adgrid .mini{font-size:11px;color:var(--ink-faint);}
+  .pilltag{display:inline-block;font-size:10.5px;font-weight:600;border-radius:5px;padding:2px 7px;margin:1px 3px 1px 0;background:#E7F1F1;color:var(--petrol-deep);}
+  .pilltag.warn{background:var(--red-bg);color:var(--red);}
+  .pilltag.soft{background:var(--violet-bg);color:var(--violet);}
+  .rowact{display:flex;gap:4px;justify-content:flex-end;}
+  .lnk{border:none;background:none;color:var(--petrol);font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;padding:5px 8px;border-radius:6px;}
+  .lnk:hover{background:#EAF2F2;}
+  .lnk.del{color:var(--red);}
+  .lnk.del:hover{background:var(--red-bg);}
+
+  .frow{margin-bottom:14px;}
+  .frow > label{display:block;font-family:"Archivo",sans-serif;font-weight:700;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;}
+  .frow input[type=text], .frow input[type=number], .frow select{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:14px;color:var(--ink);background:#FBFCFB;}
+  .frow input:focus, .frow select:focus{outline:2px solid var(--petrol);outline-offset:0;border-color:var(--petrol);}
+  .chips2{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip2{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:12.5px;cursor:pointer;background:var(--panel);user-select:none;}
+  .chip2:hover{border-color:var(--ink-faint);}
+  .chip2.on{background:var(--petrol);color:#fff;border-color:var(--petrol);}
+  .chip2.danger.on{background:var(--red);border-color:var(--red);}
+  .chip2.soft.on{background:var(--violet);border-color:var(--violet);}
+  .fhint{font-size:11.5px;color:var(--ink-faint);margin-top:5px;}
+  .factions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft);}
+  .ftwo{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){ .ftwo{grid-template-columns:1fr;} }
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="eyebrow">St Francis Xavier College &middot; Florey</div>
+      <h1><span class="mark"><span>LSA</span></span> Day Board</h1>
+      <p>Mark who&rsquo;s away each morning and the board re-plans the day &mdash; protecting ILP and medical support first, then pulling cover from prep periods and backup classes. Every proposal can be changed.</p>
+    </div>
+    <div class="topright">
+      <div class="datebox">
+        <div class="dow" id="dow">Monday</div>
+        <div class="full" id="fulldate">Term 2 &middot; Week A</div>
+      </div>
+      <div class="toprow">
+        <button class="ghost" id="manageBtn">Manage data</button>
+        <button class="ghost" id="copyBtn">Copy staff link</button>
+        <button class="pill" id="gapsPill"><span class="dot"></span><span id="gapsText">No staff away</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div id="boardView">
+  <nav class="daytabs" id="daytabs"></nav>
+  <div class="statusline" id="statusline"></div>
+
+  <div class="grid2">
+    <div>
+      <section class="card">
+        <div class="card-h"><h2>Staff today</h2><span class="sub" id="staffCount"></span></div>
+        <div class="searchbar"><input id="staffSearch" type="text" placeholder="Search staff&hellip;" autocomplete="off" /></div>
+        <div class="roster" id="roster"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-h"><h2>Funded support delivered</h2><span class="sub">NCCD record</span></div>
+        <div class="comp" id="compliance"></div>
+      </section>
+    </div>
+
+    <div>
+      <section class="card">
+        <div class="card-h"><h2>Allocation board</h2>
+          <div class="boardfilter">
+            <button class="fbtn active" data-f="affected">Affected today</button>
+            <button class="fbtn" data-f="all">All staff</button>
+          </div>
+        </div>
+        <div class="boardwrap"><table class="board" id="board"></table></div>
+      </section>
+
+      <section class="card">
+        <div class="card-h"><h2>Today&rsquo;s adjustments</h2><span class="sub" id="adjCount"></span></div>
+        <div class="panelbody" id="adjustments"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="lg"><span class="sw oto"></span> 1:1 (ILP / funded)</span>
+    <span class="lg"><span class="sw class"></span> Class support</span>
+    <span class="lg"><span class="sw yard"></span> Yard duty</span>
+    <span class="lg"><span class="sw backup"></span> Backup class</span>
+    <span class="lg"><span class="sw prep"></span> Prep / float</span>
+    <span class="lg"><span class="sw covering"></span> Reassigned to cover</span>
+    <span class="lg"><span class="sw gap"></span> Needs relief</span>
+  </div>
+  </div><!-- /boardView -->
+
+  <div id="adminView" style="display:none"></div>
+
+  <div class="foot">
+    Mockup for review &mdash; staff, students and allocations are illustrative (the 40-strong team is generated; ACT terms throughout: recess, yard duty, ILP, NCCD, Key Word Sign / Auslan). Edit the <kbd>LSAS</kbd>, <kbd>STUDENTS</kbd> and <kbd>ALLOC</kbd> objects at the top of the script to load real data. The day&rsquo;s absences live in the page link, so whoever sets the board in the morning shares one URL the whole team opens. The board <strong>proposes</strong> cover but nothing is locked &mdash; tap any covered or red cell to reassign or book casual relief. Try marking <strong>Sarah M</strong> away, then <strong>Tom B</strong>: with two ILP 1:1s down and limited Key Word Sign / de-escalation cover, watch what fills, what escalates, and override a period yourself.
+  </div>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetName">
+    <div class="sheet-h">
+      <div><h3 id="sheetName">&mdash;</h3><div class="dyc" id="sheetMeta"></div></div>
+      <button class="closeb" id="closeBtn" aria-label="Close">&times;</button>
+    </div>
+    <div class="daylist" id="daylist"></div>
+  </div>
+</div>
+
+<div class="scrim" id="ascrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="aName">
+    <div class="sheet-h">
+      <div><h3 id="aName">Assign cover</h3><div class="dyc" id="aMeta"></div></div>
+      <button class="closeb" id="aClose" aria-label="Close">&times;</button>
+    </div>
+    <div id="aBody" class="abody"></div>
+  </div>
+</div>
+
+<div class="scrim" id="fscrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fName">
+    <div class="sheet-h">
+      <div><h3 id="fName">Form</h3></div>
+      <button class="closeb" id="fClose" aria-label="Close">&times;</button>
+    </div>
+    <div id="fBody" class="abody"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   DATA  — edit to load your real setup.  ACT context.
+   types: oto (1:1) | class | backup | yard | prep
+   ========================================================================= */
+const PERIODS = [
+  { id:'reg', label:'Reg',    time:'08:40', span:'am' },
+  { id:'p1',  label:'P1',     time:'09:00', span:'am' },
+  { id:'p2',  label:'P2',     time:'10:00', span:'am' },
+  { id:'rec', label:'Recess', time:'11:00', span:'am', brk:true },
+  { id:'p3',  label:'P3',     time:'11:20', span:'pm' },
+  { id:'p4',  label:'P4',     time:'12:20', span:'pm' },
+  { id:'lun', label:'Lunch',  time:'13:20', span:'pm', brk:true },
+  { id:'p5',  label:'P5',     time:'14:00', span:'pm' },
+];
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+let LSAS = [
+  { id:'sarah', name:'Sarah M', contract:'Full',    skills:['Key Word Sign','First Aid'] },
+  { id:'priya', name:'Priya K', contract:'Full',    skills:['First Aid','Sensory'] },
+  { id:'tom',   name:'Tom B',   contract:'Full',    skills:['De-escalation','Manual handling'] },
+  { id:'aisha', name:'Aisha R', contract:'Full',    skills:['Key Word Sign','First Aid','De-escalation'] },
+  { id:'james', name:'James T', contract:'Full',    skills:[] },
+  { id:'dan',   name:'Dan L',   contract:'AM only', amOnly:true, skills:[] },
+];
+
+// priority: high = ILP 1:1 / medical / 2-staff (a real gap). medium = key-worker / preference.
+// funded + fundedPeriods => tracked for NCCD delivery.
+let STUDENTS = {
+  leo:    { name:'Leo',    year:8,  need:'ILP &middot; funded 1:1',            requires:['Key Word Sign'], keyWorker:'sarah', cannotWorkWith:[],        priority:'high',   funded:true,  fundedPeriods:['reg','p1','p2','p3','p4','p5'] },
+  mia:    { name:'Mia',    year:9,  need:'Autism &middot; sensory / low-stim', requires:[],                keyWorker:'priya', cannotWorkWith:[],        priority:'medium' },
+  jacob:  { name:'Jacob',  year:7,  need:'Safety Plan &middot; 2-staff',       requires:['De-escalation'], keyWorker:'tom',   cannotWorkWith:['james'], priority:'high',   funded:true,  fundedPeriods:['reg','p1','p2','p3','p4','p5'] },
+  hannah: { name:'Hannah', year:10, need:'Seizure plan &middot; medical',      requires:['First Aid'],     keyWorker:'priya', cannotWorkWith:[],        priority:'high',   funded:true,  fundedPeriods:['p4'] },
+};
+
+let ALLOC = {
+  sarah:{
+    reg:{room:'E1',subject:'Form',student:'leo',type:'oto'},
+    p1:{room:'M3',subject:'Maths',student:'leo',type:'oto'},
+    p2:{room:'E2',subject:'English',student:'leo',type:'oto'},
+    rec:{room:'Quad',subject:'Yard duty',type:'yard'},
+    p3:{room:'S4',subject:'Science',student:'leo',type:'oto'},
+    p4:{room:'H2',subject:'History',student:'leo',type:'oto'},
+    lun:{room:'Quad',subject:'Yard duty',type:'yard'},
+    p5:{room:'G1',subject:'Geography',student:'leo',type:'oto'},
+  },
+  priya:{
+    reg:{room:'9C',subject:'Form',type:'class'},
+    p1:{room:'E1',subject:'English',student:'mia',type:'class'},
+    p2:{room:'L2',subject:'Science',student:'mia',type:'class'},
+    rec:{room:'Oval',subject:'Yard duty',type:'yard'},
+    p3:{room:'G1',subject:'Geography',student:'mia',type:'class'},
+    p4:{room:'H2',subject:'History',student:'hannah',type:'class'},
+    lun:{room:'Oval',subject:'Yard duty',type:'yard'},
+    p5:{room:'A1',subject:'Art',student:'mia',type:'class'},
+  },
+  tom:{
+    reg:{room:'7A',subject:'Form',student:'jacob',type:'oto'},
+    p1:{room:'M2',subject:'Maths',student:'jacob',type:'oto'},
+    p2:{room:'H1',subject:'History',student:'jacob',type:'oto'},
+    rec:{room:'Court',subject:'Yard duty',type:'yard'},
+    p3:{room:'Gym',subject:'PE',student:'jacob',type:'oto'},
+    p4:{room:'L1',subject:'Science',student:'jacob',type:'oto'},
+    lun:{room:'Court',subject:'Yard duty',type:'yard'},
+    p5:{room:'E3',subject:'English',student:'jacob',type:'oto'},
+  },
+  aisha:{
+    reg:{room:'8B',subject:'Form',type:'class'},
+    p1:{room:'—',subject:'Prep / float',type:'prep'},
+    p2:{room:'M1',subject:'Maths',type:'backup'},
+    rec:{room:'Quad',subject:'Yard duty',type:'yard'},
+    p3:{room:'—',subject:'Prep / float',type:'prep'},
+    p4:{room:'E4',subject:'English',type:'backup'},
+    lun:{room:'—',subject:'Prep / float',type:'prep'},
+    p5:{room:'—',subject:'Prep / float',type:'prep'},
+  },
+  james:{
+    reg:{room:'10A',subject:'Form',type:'class'},
+    p1:{room:'G2',subject:'Geography',type:'backup'},
+    p2:{room:'—',subject:'Prep / float',type:'prep'},
+    rec:{room:'Oval',subject:'Yard duty',type:'yard'},
+    p3:{room:'H3',subject:'History',type:'backup'},
+    p4:{room:'—',subject:'Prep / float',type:'prep'},
+    lun:{room:'Court',subject:'Yard duty',type:'yard'},
+    p5:{room:'L2',subject:'Science',type:'backup'},
+  },
+  dan:{
+    reg:{room:'7B',subject:'Form',type:'backup'},
+    p1:{room:'E2',subject:'English',type:'backup'},
+    p2:{room:'M4',subject:'Maths',type:'backup'},
+    rec:{room:'Oval',subject:'Yard duty',type:'yard'},
+  },
+};
+
+/* ---- Extra named specialists (more qualified cover at SFX scale) ---- */
+LSAS.push(
+  { id:'noah',  name:'Noah P',  contract:'Full', skills:['Key Word Sign','First Aid'] },
+  { id:'grace', name:'Grace L', contract:'Full', skills:['De-escalation','First Aid'] },
+  { id:'maya',  name:'Maya S',  contract:'Full', skills:['First Aid','Sensory'] },
+);
+Object.assign(ALLOC, {
+  noah: { reg:{room:'9A',subject:'Form',type:'class'}, p1:{room:'—',subject:'Prep / float',type:'prep'}, p2:{room:'—',subject:'Prep / float',type:'prep'}, rec:{room:'Quad',subject:'Yard duty',type:'yard'}, p3:{room:'M5',subject:'Maths',type:'backup'}, p4:{room:'—',subject:'Prep / float',type:'prep'}, lun:{room:'—',subject:'Prep / float',type:'prep'}, p5:{room:'S2',subject:'Science',type:'backup'} },
+  grace:{ reg:{room:'7C',subject:'Form',type:'class'}, p1:{room:'—',subject:'Prep / float',type:'prep'}, p2:{room:'E5',subject:'English',type:'backup'}, rec:{room:'Court',subject:'Yard duty',type:'yard'}, p3:{room:'—',subject:'Prep / float',type:'prep'}, p4:{room:'—',subject:'Prep / float',type:'prep'}, lun:{room:'—',subject:'Prep / float',type:'prep'}, p5:{room:'H4',subject:'History',type:'backup'} },
+  maya: { reg:{room:'8D',subject:'Form',type:'class'}, p1:{room:'A2',subject:'Art',type:'class'}, p2:{room:'—',subject:'Prep / float',type:'prep'}, rec:{room:'Oval',subject:'Yard duty',type:'yard'}, p3:{room:'L3',subject:'Science',type:'class'}, p4:{room:'—',subject:'Prep / float',type:'prep'}, lun:{room:'Quad',subject:'Yard duty',type:'yard'}, p5:{room:'—',subject:'Prep / float',type:'prep'} },
+});
+
+/* ---- Generate the rest of the support team up to ~40 (illustrative) ---- */
+(function generateTeam(){
+  const NAMES = ['Olivia','Liam','Emma','Ava','Lucas','Ethan','Zoe','Mason','Chloe','Ruby','Jack','Ella','Henry','Max','Lily','Sam','Ivy','Cooper','Hazel','Eli','Aria','Finn','Owen','Isla','Jude','Layla','Asha','Kai','Nina','Reed','Tara'];
+  const INITS = 'BCDFGHKLMNPRSTWY';
+  const FAC = [
+    {name:'English',   rooms:['E5','E6','E7']},
+    {name:'Maths',     rooms:['M5','M6','M7']},
+    {name:'Science',   rooms:['S2','S3','S5']},
+    {name:'HASS',      rooms:['H4','H5','H6']},
+    {name:'Tech',      rooms:['T1','T2','T3']},
+    {name:'Arts',      rooms:['A2','A3','A4']},
+    {name:'PE/Health', rooms:['Gym','Court','Oval']},
+    {name:'Languages', rooms:['LA1','LA2','LA3']},
+  ];
+  const YARDS = ['Quad','Oval','Court'];
+  const FORMYR = ['7','8','9','10'];
+  for (let i=0;i<31;i++){
+    const id = 'g'+(i<9?'0':'')+(i+1);
+    const name = NAMES[i] + ' ' + INITS[i%INITS.length];
+    const fac = FAC[i%FAC.length];
+    const r = k => fac.rooms[k%fac.rooms.length];
+    const amOnly = (i%10===9);
+    const prep = {room:'—',subject:'Prep / float',type:'prep'};
+    const day = {
+      reg:{room:FORMYR[i%4]+String.fromCharCode(68+(i%3)),subject:'Form',type:'class'},
+      p1:{room:r(0),subject:fac.name,type:'class'},
+      p2:(i%3===0)?{room:r(1),subject:fac.name,type:'backup'}:prep,
+      rec:(i%2===0)?{room:YARDS[i%3],subject:'Yard duty',type:'yard'}:prep,
+      p3:{room:r(2),subject:fac.name,type:'class'},
+      p4:(i%4===1)?{room:r(0),subject:fac.name,type:'backup'}:prep,
+      lun:(i%2===0)?prep:{room:YARDS[i%3],subject:'Yard duty',type:'yard'},
+      p5:(i%5===0)?prep:{room:r(1),subject:fac.name,type:'class'},
+    };
+    if (amOnly){ delete day.p3; delete day.p4; delete day.lun; delete day.p5; }
+    LSAS.push({ id, name, contract: amOnly?'AM only':'Full', amOnly, skills:(i%2===0)?['First Aid']:[] });
+    ALLOC[id] = day;
+  }
+})();
+
+/* =========================================================================
+   ENGINE — re-plan the day from the away set.
+   ========================================================================= */
+const away = new Set();
+const overrides = {};            // overrides[ownerId][pid] = {assign:lsaId} | {relief:text}
+let excursions = [];             // [{id,name,periods:[],students:[],staff:[]}] — today's, volatile
+let currentDay = 0;
+let boardFilter = 'affected';    // 'affected' | 'all'
+let staffQuery = '';
+let view = 'board';              // 'board' | 'admin'
+let adminTab = 'staff';          // 'staff' | 'students' | 'excursions'
+const SKILL_OPTIONS = ['Key Word Sign','Auslan','First Aid','De-escalation','Manual handling','Sensory'];
+const CONTRACTS = ['Full','AM only','PM only'];
+
+let lsaById = {};
+const periodById = Object.fromEntries(PERIODS.map(p => [p.id, p]));
+function rebuildIndexes(){ lsaById = Object.fromEntries(LSAS.map(l => [l.id, l])); }
+rebuildIndexes();
+
+function saveData(){ try{ localStorage.setItem('sfx_lsa_data', JSON.stringify({LSAS,STUDENTS,ALLOC})); }catch(e){} }
+function loadData(){
+  try{
+    const s = localStorage.getItem('sfx_lsa_data');
+    if (s){ const o = JSON.parse(s); if (o.LSAS && o.STUDENTS && o.ALLOC){ LSAS=o.LSAS; STUDENTS=o.STUDENTS; ALLOC=o.ALLOC; return true; } }
+  }catch(e){}
+  return false;
+}
+
+function works(lsa, pid){ return !(lsa.amOnly && periodById[pid].span !== 'am'); }
+function hasSkills(id, requires){ const s = lsaById[id].skills; return requires.every(r => s.includes(r)); }
+function staffOnExcursion(id, pid){ const e = excursions.find(x => x.staff.includes(id) && x.periods.includes(pid)); return e ? e.name : null; }
+function studentOnExcursion(key, pid){ const e = excursions.find(x => x.students.includes(key) && x.periods.includes(pid)); return e ? e.name : null; }
+
+// priority rank for a student slot
+function slotPrio(slot){
+  if (!slot) return -1;
+  if (slot.student){
+    const st = STUDENTS[slot.student];
+    return st.priority === 'high' ? 3 : 2;   // essential / core
+  }
+  if (slot.type === 'yard') return 2;
+  if (slot.type === 'class') return 2;
+  if (slot.type === 'backup') return 1;
+  return 0; // prep
+}
+
+function planDay(){
+  const moves = {};        // moves[coverId][pid] = {studentKey?,room,subject,coveringFor, yard?}
+  const resolution = {};   // resolution[ownerId][pid] = {studentKey,status:'covered'|'escalate',by?}
+  const dropped = [];      // backup/class that lost its aide to cover, or owner away (unsupported)
+  const escalations = [];  // {studentKey,pid,reason,exclName?}
+  const dutyShort = [];    // {pid,ownerName}
+  const ensure = (o,k)=> (o[k] = o[k] || {});
+
+  PERIODS.forEach(p=>{
+    const gaps = [];   // {studentKey,owner,room,subject,prio,requires,barred[]}
+    let pool = [];     // {id,from:'prep'|'backup',slot}
+    const dutyGaps = [];
+
+    LSAS.forEach(l=>{
+      const slot = ALLOC[l.id] && ALLOC[l.id][p.id];
+      const exc = staffOnExcursion(l.id, p.id);
+      const out = away.has(l.id) || exc;
+      if (out){
+        if (!slot) return;
+        if (slot.student){
+          const stuExc = studentOnExcursion(slot.student, p.id);
+          if (stuExc){
+            ensure(resolution, l.id)[p.id] = { studentKey:slot.student, status:'excursion', name:stuExc };
+          } else {
+            const st = STUDENTS[slot.student];
+            gaps.push({ studentKey:slot.student, owner:l.id, room:slot.room, subject:slot.subject,
+                        prio: st.priority==='high'?3:2, requires:st.requires, barred:st.cannotWorkWith });
+          }
+        } else if (slot.type==='yard'){
+          dutyGaps.push({ owner:l.id });
+        } else if (slot.type==='backup'){
+          dropped.push({ room:slot.room, subject:slot.subject, pid:p.id, reason: exc?'on excursion':'owner away' });
+        }
+      } else {
+        if (!works(l, p.id)) return;
+        // a 1:1 aide whose student is on excursion is freed up to cover elsewhere
+        if (slot && slot.type==='oto' && slot.student && studentOnExcursion(slot.student, p.id)){
+          pool.push({ id:l.id, from:'freed', slot });
+        } else if (slot && slot.type==='prep') pool.push({ id:l.id, from:'prep', slot });
+        else if (slot && slot.type==='backup') pool.push({ id:l.id, from:'backup', slot });
+      }
+    });
+
+    gaps.sort((a,b)=> b.prio - a.prio);
+
+    gaps.forEach(g=>{
+      // prefer prep over backup; must be skilled and not barred
+      const ordered = pool.slice().sort((a,b)=> (a.from==='prep'?0:1)-(b.from==='prep'?0:1));
+      const cand = ordered.find(c => hasSkills(c.id, g.requires) && !g.barred.includes(c.id));
+      if (cand){
+        ensure(moves, cand.id)[p.id] = { studentKey:g.studentKey, room:g.room, subject:g.subject, coveringFor:g.owner };
+        ensure(resolution, g.owner)[p.id] = { studentKey:g.studentKey, status:'covered', by:cand.id };
+        if (cand.from==='backup') dropped.push({ room:cand.slot.room, subject:cand.slot.subject, pid:p.id, reason:'aide redeployed' });
+        pool = pool.filter(c => c.id !== cand.id);
+      } else {
+        ensure(resolution, g.owner)[p.id] = { studentKey:g.studentKey, status:'escalate' };
+        // is there a free LSA blocked only by "can't work with"?
+        const ex = pool.find(c => g.barred.includes(c.id));
+        const exName = ex ? lsaById[ex.id].name : null;
+        const reqTxt = g.requires.length ? g.requires.join('/')+'-trained ' : '';
+        escalations.push({ studentKey:g.studentKey, pid:p.id,
+          reason: 'no '+reqTxt+'reliever free', exclName: exName ? (exName+' free but can&rsquo;t support '+STUDENTS[g.studentKey].name) : null });
+      }
+    });
+
+    dutyGaps.forEach(dg=>{
+      const ordered = pool.slice().sort((a,b)=> (a.from==='prep'?0:1)-(b.from==='prep'?0:1));
+      const cand = ordered[0];
+      if (cand){
+        ensure(moves, cand.id)[p.id] = { yard:true, room:'Yard', subject:'Yard duty', coveringFor:dg.owner };
+        if (cand.from==='backup') dropped.push({ room:cand.slot.room, subject:cand.slot.subject, pid:p.id, reason:'aide redeployed' });
+        pool = pool.filter(c => c.id !== cand.id);
+      } else {
+        dutyShort.push({ pid:p.id, ownerName:lsaById[dg.owner].name });
+      }
+    });
+  });
+
+  return { moves, resolution, dropped, escalations, dutyShort };
+}
+
+// LSAs present + working + on prep/backup/unassigned + not already covering at this period
+function freeAt(pid, plan){
+  return LSAS.filter(l=>{
+    if (away.has(l.id) || !works(l, pid)) return false;
+    if (plan.moves[l.id] && plan.moves[l.id][pid]) return false;
+    const s = ALLOC[l.id] && ALLOC[l.id][pid];
+    return !s || s.type==='prep' || s.type==='backup';
+  });
+}
+
+// Apply coordinator overrides on top of the proposed plan, keeping it consistent.
+function applyOverrides(plan){
+  Object.entries(overrides).forEach(([owner, byPid])=>{
+    if (!away.has(owner)) return;          // owner returned; ignore stale override
+    Object.entries(byPid).forEach(([pid, ov])=>{
+      const slot = ALLOC[owner] && ALLOC[owner][pid];
+      if (!slot || !slot.student) return;
+      const stuKey = slot.student;
+      // free whoever the engine had assigned to this owner/pid
+      Object.keys(plan.moves).forEach(cid=>{
+        const m = plan.moves[cid] && plan.moves[cid][pid];
+        if (m && !m.yard && m.coveringFor===owner) delete plan.moves[cid][pid];
+      });
+      plan.resolution[owner] = plan.resolution[owner] || {};
+      if (ov.relief){
+        plan.resolution[owner][pid] = { studentKey:stuKey, status:'relief', text:ov.relief, edited:true };
+      } else if (ov.assign){
+        const x = ov.assign;
+        // if x was covering someone else here, reopen that gap
+        const prev = plan.moves[x] && plan.moves[x][pid];
+        if (prev && !prev.yard && prev.coveringFor!==owner){
+          const z = prev.coveringFor;
+          plan.resolution[z] = plan.resolution[z] || {};
+          plan.resolution[z][pid] = { studentKey:prev.studentKey, status:'escalate' };
+          plan.escalations.push({ studentKey:prev.studentKey, pid, reason:'reliever reassigned by admin' });
+        }
+        plan.resolution[owner][pid] = { studentKey:stuKey, status:'covered', by:x, edited:true };
+        plan.moves[x] = plan.moves[x] || {};
+        plan.moves[x][pid] = { studentKey:stuKey, room:slot.room, subject:slot.subject, coveringFor:owner, edited:true };
+      }
+    });
+  });
+  // drop escalations now resolved; de-dupe by student+period
+  const seen = new Set();
+  plan.escalations = plan.escalations.filter(e=>{
+    const owner = STUDENTS[e.studentKey].keyWorker;
+    const r = plan.resolution[owner] && plan.resolution[owner][e.pid];
+    if (r && (r.status==='covered' || r.status==='relief' || r.status==='excursion')) return false;
+    const k = e.studentKey+'|'+e.pid; if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  return plan;
+}
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
+
+function renderTabs(){
+  const nav = document.getElementById('daytabs'); nav.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const b = el('button','daytab'+(i===currentDay?' active':''), d.slice(0,3));
+    b.onclick = ()=>{ currentDay=i; syncHash(); renderAll(); };
+    nav.appendChild(b);
+  });
+  document.getElementById('dow').textContent = DAYS[currentDay];
+}
+
+function renderRoster(){
+  const root = document.getElementById('roster'); root.innerHTML='';
+  document.getElementById('staffCount').textContent = away.size + ' away &middot; ' + LSAS.length + ' staff';
+  document.getElementById('staffCount').innerHTML = away.size + ' away &middot; ' + LSAS.length + ' staff';
+
+  let list = LSAS.slice();
+  if (staffQuery) list = list.filter(l => l.name.toLowerCase().includes(staffQuery));
+  // away first, then original order
+  list.sort((a,b)=> (away.has(b.id)?1:0) - (away.has(a.id)?1:0));
+
+  if (!list.length){ root.appendChild(el('div','nomatch','No staff match &ldquo;'+staffQuery+'&rdquo;')); return; }
+
+  list.forEach(l=>{
+    const row = el('div','lsarow'+(away.has(l.id)?' away':''));
+    const meta = el('div','meta');
+    const keyOf = Object.entries(STUDENTS).find(([,s])=>s.keyWorker===l.id);
+    meta.appendChild(el('div','nm', l.name + (away.has(l.id)?' <span class="away-flag">AWAY</span>':'')));
+    meta.appendChild(el('div','contract', l.contract));
+    const sk = el('div','skills');
+    if (keyOf) sk.appendChild(el('span','tag k','Key: '+keyOf[1].name));
+    l.skills.forEach(s=> sk.appendChild(el('span','tag', s)));
+    meta.appendChild(sk);
+    const tg = el('label','tg');
+    tg.innerHTML = '<input type="checkbox" '+(away.has(l.id)?'checked':'')+' aria-label="Mark '+l.name+' away"><span class="track"></span><span class="knob"></span>';
+    tg.querySelector('input').addEventListener('change', e=>{
+      if (e.target.checked) away.add(l.id); else away.delete(l.id);
+      syncHash(); renderAll();
+    });
+    row.appendChild(meta); row.appendChild(tg);
+    root.appendChild(row);
+  });
+}
+
+function renderBoard(plan){
+  const t = document.getElementById('board'); t.innerHTML='';
+  const thead = el('thead'); const hr = el('tr');
+  hr.appendChild(el('th','corner','Staff'));
+  PERIODS.forEach(p=> hr.appendChild(el('th', p.brk?'brk-col':'', p.label+'<span class="pt">'+p.time+'</span>')));
+  thead.appendChild(hr); t.appendChild(thead);
+
+  // which rows to show: affected = away staff + excursion staff + anyone reassigned to cover
+  const affected = new Set(away);
+  excursions.forEach(x=> x.staff.forEach(id=> affected.add(id)));
+  Object.keys(plan.moves).forEach(id=>{ if (Object.keys(plan.moves[id]).length) affected.add(id); });
+  const quiet = (away.size===0 && excursions.length===0);
+  const showAll = (boardFilter==='all' || quiet);
+  const rows = showAll ? LSAS : LSAS.filter(l=> affected.has(l.id));
+
+  const tb = el('tbody');
+  if (!rows.length){
+    const tr = el('tr'); const td = el('td','slot'); td.colSpan = PERIODS.length+1;
+    td.innerHTML = '<div class="nomatch">No staff affected today &mdash; the base timetable stands.</div>';
+    tr.appendChild(td); tb.appendChild(tr); t.appendChild(tb); return;
+  }
+  rows.forEach(l=>{
+    const isAway = away.has(l.id);
+    const tr = el('tr', isAway?'lsa-away':'');
+    const nameCell = el('td','namecell');
+    nameCell.innerHTML = '<div class="nm">'+l.name+'</div><div class="ct">'+l.contract+'</div>';
+    nameCell.onclick = ()=> openDay(l.id, plan);
+    tr.appendChild(nameCell);
+    PERIODS.forEach(p=>{
+      const base = ALLOC[l.id] && ALLOC[l.id][p.id];
+      const editable = isAway && base && base.student && !studentOnExcursion(base.student, p.id);
+      const td = el('td','slot'+(p.brk?' brk-col':'')+(editable?' editable':''));
+      td.innerHTML = cellHTML(l, p.id, plan);
+      if (editable) td.onclick = ()=> openAssign(l.id, p.id);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+}
+
+function cellHTML(l, pid, plan){
+  const base = ALLOC[l.id] && ALLOC[l.id][pid];
+  const res = plan.resolution[l.id] && plan.resolution[l.id][pid];
+  const mv  = plan.moves[l.id] && plan.moves[l.id][pid];
+
+  if (away.has(l.id)){
+    if (res){
+      if (res.status==='excursion'){
+        return '<div class="blk excursion"><div class="rm">'+res.name+'</div><div class="sj">'+STUDENTS[res.studentKey].name+' &middot; on excursion</div></div>';
+      }
+      if (res.status==='relief'){
+        return '<div class="blk relief"><div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div>'+
+               '<span class="st">'+STUDENTS[res.studentKey].name+'</span><span class="badge2">Relief: '+res.text+'</span></div>';
+      }
+      if (res.status==='covered'){
+        const by = lsaById[res.by].name;
+        return '<div class="blk covered"><div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div>'+
+               '<span class="st">'+STUDENTS[res.studentKey].name+' <small>&middot; '+by+'</small></span>'+(res.edited?'<span class="edot">&#9998; edited</span>':'')+'</div>';
+      }
+      return '<div class="blk cover-gap"><div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div>'+
+             '<span class="needcover">Relief needed</span></div>';
+    }
+    if (base && base.type==='yard') return '<div class="blk yard dim"><div class="rm">Absent</div><div class="sj">Yard duty</div></div>';
+    if (base && base.type==='backup') return '<div class="blk backup dim"><div class="rm">'+base.room+'</div><div class="sj">No aide</div></div>';
+    if (base) return '<div class="blk class dim"><div class="rm">Absent</div></div>';
+    return '<div class="blk off"><div class="rm">&mdash;</div></div>';
+  }
+
+  const exc = staffOnExcursion(l.id, pid);
+  if (exc){
+    if (res && res.status==='excursion')
+      return '<div class="blk excursion"><div class="rm">'+exc+'</div><div class="sj">'+STUDENTS[res.studentKey].name+' &middot; on excursion</div></div>';
+    return '<div class="blk excursion"><div class="rm">'+exc+'</div><div class="sj">On excursion</div></div>';
+  }
+
+  if (mv){
+    if (mv.yard) return '<div class="blk covering"><div class="rm">Yard</div><div class="sj">Yard duty</div><span class="badge2">Covering '+lsaById[mv.coveringFor].name+'</span></div>';
+    return '<div class="blk covering"><div class="rm">'+mv.room+'</div><div class="sj">'+mv.subject+'</div>'+
+           '<span class="st" style="background:#fff;color:var(--green);border:1px solid #C5E2D4">'+STUDENTS[mv.studentKey].name+'</span>'+
+           '<span class="badge2">Covering '+lsaById[mv.coveringFor].name+'</span></div>';
+  }
+
+  if (base && base.type==='oto' && base.student && studentOnExcursion(base.student, pid)){
+    return '<div class="blk freed"><div class="rm">Free</div><div class="sj">'+STUDENTS[base.student].name+' on excursion</div></div>';
+  }
+
+  if (!base){
+    const off = (l.amOnly && periodById[pid].span!=='am');
+    return '<div class="blk off"><div class="rm">'+(off?'Off':'&mdash;')+'</div>'+(off?'<div class="sj">AM only</div>':'')+'</div>';
+  }
+  const stu = base.student ? STUDENTS[base.student] : null;
+  let inner = '<div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div>';
+  if (stu) inner += '<span class="st">'+stu.name+(base.type==='oto'?' &middot; 1:1':'')+'</span>';
+  return '<div class="blk '+base.type+'">'+inner+'</div>';
+}
+
+function chips(labels, cls){ return labels.map(l=>'<span class="pchip '+cls+'">'+l+'</span>').join(''); }
+
+function renderAdjustments(plan){
+  const root = document.getElementById('adjustments'); root.innerHTML='';
+
+  // escalations grouped by student
+  const escByStu = {};
+  plan.escalations.forEach(e=>{
+    (escByStu[e.studentKey] = escByStu[e.studentKey] || {pids:[], ex:new Set()}).pids.push(periodById[e.pid].label);
+    if (e.exclName) escByStu[e.studentKey].ex.add(e.exclName);
+  });
+  // covers grouped by coverer->owner->student
+  const covers = {};
+  Object.entries(plan.moves).forEach(([covId, byPid])=>{
+    Object.entries(byPid).forEach(([pid, mv])=>{
+      if (mv.yard) return;
+      const key = covId+'|'+mv.coveringFor+'|'+mv.studentKey;
+      (covers[key] = covers[key] || {covId, owner:mv.coveringFor, stu:mv.studentKey, pids:[]}).pids.push(periodById[pid].label);
+    });
+  });
+  // externally-booked relief, grouped
+  const reliefs = {};
+  Object.entries(plan.resolution).forEach(([owner, byPid])=>{
+    Object.entries(byPid).forEach(([pid, r])=>{
+      if (r.status!=='relief') return;
+      const key = owner+'|'+r.studentKey+'|'+r.text;
+      (reliefs[key] = reliefs[key] || {owner, stu:r.studentKey, text:r.text, pids:[]}).pids.push(periodById[pid].label);
+    });
+  });
+
+  const nEsc = Object.keys(escByStu).length;
+  const nCov = Object.keys(covers).length;
+  const nRel = Object.keys(reliefs).length;
+  const quiet = (away.size===0 && excursions.length===0);
+  const total = nEsc + nCov + nRel + excursions.length + (plan.dropped.length?1:0) + (plan.dutyShort.length?1:0);
+  document.getElementById('adjCount').textContent = quiet ? '' : (total? total+' to action':'all absorbed');
+
+  // gaps pill
+  const pill = document.getElementById('gapsPill'); const gtext = document.getElementById('gapsText');
+  const escPeriods = plan.escalations.length;
+  if (escPeriods>0){ pill.classList.add('has-gaps'); gtext.textContent = escPeriods+' period'+(escPeriods>1?'s':'')+' need relief'; }
+  else { pill.classList.remove('has-gaps'); gtext.textContent = quiet ? 'No staff away' : 'Cover arranged'; }
+
+  // status line
+  const sl = document.getElementById('statusline');
+  if (quiet){ sl.innerHTML = '<b>No staff away.</b> Base timetable in effect &mdash; mark absences (or add an excursion) to re-plan.'; }
+  else {
+    const bits = [];
+    if (away.size) bits.push('<b>'+away.size+' away:</b> '+[...away].map(id=>lsaById[id].name).join(', '));
+    if (excursions.length) bits.push('<b>'+excursions.length+' excursion'+(excursions.length>1?'s':'')+'</b>');
+    sl.innerHTML = bits.join(' &nbsp;&middot;&nbsp; ') + ' &mdash; board re-planned below.';
+  }
+
+  if (quiet){
+    root.appendChild(el('div','empty','<strong>Base timetable in effect.</strong><br>Mark a staff member away or add an excursion to re-plan.'));
+    return;
+  }
+
+  if (nEsc){
+    root.appendChild(el('div','seclabel','Relief needed &mdash; escalate'));
+    root.appendChild(el('div','ahint','Tap a red cell on the board to assign someone or book casual relief.'));
+    Object.entries(escByStu).forEach(([stuKey, g])=>{
+      const s = STUDENTS[stuKey];
+      const a = el('div','alert high');
+      let h = '<div class="who">'+s.name+'</div><div class="need">'+s.need+'</div>'+
+              '<div class="body">'+chips(g.pids,'esc')+'<span class="reason">no qualified reliever free</span></div>';
+      [...g.ex].forEach(x=> h += '<div class="exnote">'+x+'</div>');
+      a.innerHTML = h; root.appendChild(a);
+    });
+  }
+  if (nCov){
+    root.appendChild(el('div','seclabel','Cover arranged'));
+    Object.values(covers).forEach(c=>{
+      const a = el('div','alert ok');
+      a.innerHTML = '<div class="who">'+lsaById[c.covId].name+' &rarr; '+STUDENTS[c.stu].name+'</div>'+
+                    '<div class="need">covering '+lsaById[c.owner].name+'</div>'+
+                    '<div class="body">'+chips(c.pids,'ok')+'</div>';
+      root.appendChild(a);
+    });
+  }
+  if (nRel){
+    root.appendChild(el('div','seclabel','Relief booked'));
+    Object.values(reliefs).forEach(c=>{
+      const a = el('div','alert info');
+      a.innerHTML = '<div class="who">'+c.text+' &rarr; '+STUDENTS[c.stu].name+'</div>'+
+                    '<div class="need">covering '+lsaById[c.owner].name+' (external)</div>'+
+                    '<div class="body">'+chips(c.pids,'ok')+'</div>';
+      root.appendChild(a);
+    });
+  }
+  if (excursions.length){
+    root.appendChild(el('div','seclabel','On excursion today'));
+    excursions.forEach(x=>{
+      const a = el('div','alert info');
+      a.innerHTML = '<div class="who">'+x.name+'</div>'+
+        '<div class="need">'+x.students.length+' student'+(x.students.length===1?'':'s')+' &middot; '+x.staff.length+' LSA'+(x.staff.length===1?'':'s')+' off-site</div>'+
+        '<div class="body">'+chips(x.periods.map(p=>periodById[p].label),'amb')+'</div>';
+      root.appendChild(a);
+    });
+  }
+  if (plan.dropped.length){
+    root.appendChild(el('div','seclabel','Backup classes unsupported'));
+    const a = el('div','alert med');
+    const items = plan.dropped.map(d=> d.room+' '+d.subject+' <span class="pchip amb">'+periodById[d.pid].label+'</span>').join('&nbsp; ');
+    a.innerHTML = '<div class="need" style="font-size:12.5px">These ran without an aide today (lowest priority):</div><div class="body">'+items+'</div>';
+    root.appendChild(a);
+  }
+  if (plan.dutyShort.length){
+    root.appendChild(el('div','seclabel','Yard duty short'));
+    const a = el('div','alert med');
+    const ps = plan.dutyShort.map(d=>periodById[d.pid].label);
+    a.innerHTML = '<div class="body">'+chips(ps,'amb')+'<span class="reason">reduce ratio / pull from front office</span></div>';
+    root.appendChild(a);
+  }
+}
+
+function renderCompliance(plan){
+  const root = document.getElementById('compliance'); root.innerHTML='';
+  const tracked = Object.entries(STUDENTS).filter(([,s])=>s.funded);
+  tracked.forEach(([key,s])=>{
+    const owner = s.keyWorker;
+    let delivered = 0;
+    s.fundedPeriods.forEach(pid=>{
+      const ownerOut = away.has(owner) || staffOnExcursion(owner, pid);
+      if (!ownerOut) { delivered++; return; }
+      const r = plan.resolution[owner] && plan.resolution[owner][pid];
+      if (r && (r.status==='covered' || r.status==='relief' || r.status==='excursion')) delivered++;
+    });
+    const total = s.fundedPeriods.length;
+    const short = delivered < total;
+    const row = el('div','crow '+(short?'short':'full'));
+    const missing = s.fundedPeriods.filter(pid=>{
+      const ownerOut = away.has(owner) || staffOnExcursion(owner, pid);
+      if (!ownerOut) return false;
+      const r = plan.resolution[owner] && plan.resolution[owner][pid];
+      return !(r && (r.status==='covered' || r.status==='relief' || r.status==='excursion'));
+    }).map(pid=>periodById[pid].label);
+    row.innerHTML =
+      '<div class="ctop"><div><div class="cname">'+s.name+'</div><div class="cneed">'+s.need+'</div></div>'+
+      '<div class="cnum">'+delivered+'/'+total+'</div></div>'+
+      '<div class="bar"><i style="width:'+Math.round(delivered/total*100)+'%"></i></div>'+
+      '<div class="cflag">'+(short? ('Short: '+missing.join(', ')+' &mdash; record for NCCD') : 'Fully delivered')+'</div>';
+    root.appendChild(row);
+  });
+}
+
+/* ---- My Day modal ---- */
+function openDay(lsaId, plan){
+  const l = lsaById[lsaId];
+  document.getElementById('sheetName').textContent = l.name;
+  document.getElementById('sheetMeta').textContent = DAYS[currentDay]+' &middot; '+l.contract+(l.skills.length?' &middot; '+l.skills.join(', '):'');
+  document.getElementById('sheetMeta').innerHTML = DAYS[currentDay]+' &middot; '+l.contract+(l.skills.length?' &middot; '+l.skills.join(', '):'');
+  const list = document.getElementById('daylist'); list.innerHTML='';
+  PERIODS.forEach(p=>{
+    const base = ALLOC[lsaId] && ALLOC[lsaId][p.id];
+    const res = plan.resolution[lsaId] && plan.resolution[lsaId][p.id];
+    const mv  = plan.moves[lsaId] && plan.moves[lsaId][p.id];
+    const dl = el('div','dl');
+    dl.innerHTML = '<div class="tm">'+p.time+'</div><div class="pd">'+p.label+'</div>';
+    const info = el('div','info'); let b='';
+    if (away.has(lsaId)){
+      if (res && res.status==='covered') b = '<div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div><span class="badge cov">Covered by '+lsaById[res.by].name+'</span>';
+      else if (res) b = '<div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div><span class="badge gap">Relief needed</span>';
+      else if (base && base.type==='yard') b = '<div class="rm">&mdash;</div><div class="sj">Away</div>';
+      else b = '<div class="rm">&mdash;</div><div class="sj">Away</div>';
+    } else if (mv){
+      b = '<div class="rm">'+(mv.yard?'Yard':mv.room)+'</div><div class="sj">'+(mv.yard?'Yard duty':mv.subject)+'</div><span class="badge cov">Covering '+lsaById[mv.coveringFor].name+'</span>';
+    } else if (!base){
+      const off = (l.amOnly && p.span!=='am');
+      b = '<div class="rm">'+(off?'Off':'&mdash;')+'</div><div class="sj">'+(off?'AM only':'Free')+'</div>';
+    } else {
+      const stu = base.student?STUDENTS[base.student]:null;
+      b = '<div class="rm">'+base.room+'</div><div class="sj">'+base.subject+'</div>';
+      if (base.type==='oto') b += '<span class="badge oto">1:1 '+stu.name+'</span>';
+      else if (base.type==='yard') b += '<span class="badge yard">Yard duty</span>';
+      else if (stu) b += '<span class="badge cov" style="background:#EAF2F2;color:#0A5458">Support '+stu.name+'</span>';
+    }
+    info.innerHTML=b; dl.appendChild(info); list.appendChild(dl);
+  });
+  document.getElementById('scrim').classList.add('open');
+}
+function closeDay(){ document.getElementById('scrim').classList.remove('open'); }
+document.getElementById('closeBtn').onclick = closeDay;
+document.getElementById('scrim').addEventListener('click', e=>{ if(e.target.id==='scrim') closeDay(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDay(); });
+document.getElementById('gapsPill').onclick = ()=> document.getElementById('adjustments').scrollIntoView({behavior:'smooth',block:'center'});
+
+document.getElementById('copyBtn').onclick = ()=>{
+  const btn = document.getElementById('copyBtn');
+  try{
+    navigator.clipboard.writeText(location.href).then(()=>{
+      const t = btn.textContent; btn.textContent='Link copied'; setTimeout(()=>btn.textContent=t,1400);
+    }).catch(()=>{ window.prompt('Copy this link for staff:', location.href); });
+  }catch(e){ window.prompt('Copy this link for staff:', location.href); }
+};
+
+/* ---- Assign cover (override the proposal) ---- */
+function openAssign(owner, pid){
+  const plan = applyOverrides(planDay());
+  const slot = ALLOC[owner] && ALLOC[owner][pid];
+  if (!slot || !slot.student) return;
+  const stu = STUDENTS[slot.student];
+  const per = periodById[pid];
+  document.getElementById('aName').innerHTML = stu.name + ' &middot; ' + per.label;
+  document.getElementById('aMeta').innerHTML = per.time + ' &middot; ' + slot.subject + ' (' + slot.room + ') &middot; covering ' + lsaById[owner].name +
+        (stu.requires.length ? ' &middot; needs ' + stu.requires.join(', ') : '');
+
+  const free = freeAt(pid, plan);
+  const qualified = free.filter(l => hasSkills(l.id, stu.requires) && !stu.cannotWorkWith.includes(l.id));
+  const barred = free.filter(l => stu.cannotWorkWith.includes(l.id));
+  const others = free.filter(l => !qualified.includes(l) && !barred.includes(l));
+  const cur = overrides[owner] && overrides[owner][pid];
+
+  let h = '';
+  if (qualified.length){
+    h += '<div class="asec">Recommended &mdash; free &amp; qualified</div>';
+    qualified.forEach(l=>{
+      h += '<button class="acand" data-assign="'+l.id+'"><span><span class="anm">'+l.name+'</span>'+
+           '<span class="askills">'+(l.skills.join(' &middot; ')||'no recorded skills')+'</span></span>'+
+           '<span class="atag q">free</span></button>';
+    });
+  }
+  if (others.length){
+    h += '<div class="asec">Other available &mdash; check suitability</div>';
+    others.slice(0,10).forEach(l=>{
+      const why = stu.requires.length ? 'not '+stu.requires.join('/')+' trained' : (l.skills.join(' &middot; ')||'no recorded skills');
+      h += '<button class="acand" data-assign="'+l.id+'"><span><span class="anm">'+l.name+'</span>'+
+           '<span class="askills">'+why+'</span></span><span class="atag w">check</span></button>';
+    });
+  }
+  if (barred.length){
+    h += '<div class="asec">Excluded</div>';
+    barred.forEach(l=>{
+      h += '<div class="acand" style="cursor:default;opacity:.65"><span><span class="anm">'+l.name+'</span>'+
+           '<span class="askills">flagged &mdash; can&rsquo;t support '+stu.name+'</span></span><span class="atag w">blocked</span></div>';
+    });
+  }
+  if (!qualified.length && !others.length){
+    h += '<div class="ahint">No suitable staff free this period &mdash; book casual relief below.</div>';
+  }
+  h += '<div class="asec">Casual relief</div>';
+  h += '<div class="areliefrow"><input id="areliefInput" type="text" placeholder="e.g. Casual &mdash; J. Smith" value="'+(cur&&cur.relief?cur.relief:'')+'"><button id="areliefSet">Book</button></div>';
+  if (cur){ h += '<button class="aclear" id="aclearBtn">Clear &mdash; use the proposal</button>'; }
+  document.getElementById('aBody').innerHTML = h;
+
+  document.getElementById('aBody').querySelectorAll('[data-assign]').forEach(btn=>{
+    btn.onclick = ()=>{ overrides[owner]=overrides[owner]||{}; overrides[owner][pid]={assign:btn.dataset.assign}; closeAssign(); renderAll(); };
+  });
+  document.getElementById('areliefSet').onclick = ()=>{
+    const v = document.getElementById('areliefInput').value.trim(); if(!v) return;
+    overrides[owner]=overrides[owner]||{}; overrides[owner][pid]={relief:v}; closeAssign(); renderAll();
+  };
+  const clr = document.getElementById('aclearBtn');
+  if (clr) clr.onclick = ()=>{ if(overrides[owner]) delete overrides[owner][pid]; closeAssign(); renderAll(); };
+
+  document.getElementById('ascrim').classList.add('open');
+}
+function closeAssign(){ document.getElementById('ascrim').classList.remove('open'); }
+document.getElementById('aClose').onclick = closeAssign;
+document.getElementById('ascrim').addEventListener('click', e=>{ if(e.target.id==='ascrim') closeAssign(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAssign(); });
+
+/* ---- URL state: today's absences live in the link ---- */
+function syncHash(){
+  const d = DAYS[currentDay].slice(0,3).toLowerCase();
+  const a = [...away].join(',');
+  const ex = excursions.length ? '&exc='+encodeURIComponent(JSON.stringify(excursions)) : '';
+  location.hash = 'd='+d+(a?'&away='+a:'')+ex;
+}
+function readHash(){
+  const h = location.hash.replace(/^#/,''); if(!h) return;
+  const params = {};
+  h.split('&').forEach(x=>{ const i=x.indexOf('='); if(i>0) params[x.slice(0,i)] = x.slice(i+1); });
+  if (params.d){ const i = DAYS.findIndex(x=>x.slice(0,3).toLowerCase()===params.d); if(i>=0) currentDay=i; }
+  away.clear();
+  if (params.away) params.away.split(',').forEach(id=>{ if(lsaById[id]) away.add(id); });
+  if (params.exc){ try{ const e = JSON.parse(decodeURIComponent(params.exc)); if(Array.isArray(e)) excursions = e; }catch(err){} }
+}
+
+/* =========================================================================
+   ADMIN / DATA MANAGEMENT
+   ========================================================================= */
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function uid(prefix){ let n=1; while(LSAS.some(l=>l.id===prefix+n)||STUDENTS[prefix+n]) n++; return prefix+n; }
+function afterDataChange(){ rebuildIndexes(); saveData(); renderAdmin(); renderAll(); }
+
+function setView(v){
+  view = v;
+  document.getElementById('boardView').style.display = v==='board' ? '' : 'none';
+  document.getElementById('adminView').style.display = v==='admin' ? '' : 'none';
+  const b = document.getElementById('manageBtn');
+  b.textContent = v==='admin' ? '\u2190 Back to board' : 'Manage data';
+  b.classList.toggle('active', v==='admin');
+  if (v==='admin') renderAdmin();
+}
+
+function renderAdmin(){
+  const root = document.getElementById('adminView');
+  const tabs = [['staff','Staff'],['students','Students'],['excursions','Excursions']];
+  root.innerHTML = '<div class="admintabs">'+tabs.map(([k,l])=>'<button class="atab'+(adminTab===k?' active':'')+'" data-tab="'+k+'">'+l+'</button>').join('')+'</div><div id="adminBody"></div>';
+  root.querySelectorAll('.atab').forEach(b=> b.onclick=()=>{ adminTab=b.dataset.tab; renderAdmin(); });
+  const body = document.getElementById('adminBody');
+  if (adminTab==='staff') body.innerHTML = staffTableHTML();
+  else if (adminTab==='students') body.innerHTML = studentTableHTML();
+  else body.innerHTML = excursionTableHTML();
+  wireAdminBody();
+}
+
+function staffTableHTML(){
+  const rows = LSAS.map(l=>{
+    const key = Object.entries(STUDENTS).find(([,s])=>s.keyWorker===l.id);
+    return '<tr><td><div>'+escapeHtml(l.name)+'</div>'+(key?'<div class="mini">Key worker: '+escapeHtml(key[1].name)+'</div>':'')+'</td>'+
+      '<td>'+l.contract+'</td>'+
+      '<td>'+(l.skills.length?l.skills.map(s=>'<span class="pilltag">'+s+'</span>').join(''):'<span class="mini">none</span>')+'</td>'+
+      '<td><div class="rowact"><button class="lnk" data-edit-staff="'+l.id+'">Edit</button><button class="lnk del" data-del-staff="'+l.id+'">Remove</button></div></td></tr>';
+  }).join('');
+  return '<div class="adminhead"><h2>Staff ('+LSAS.length+')</h2><div class="tools"><button class="btns" id="exportBtn">Export</button><button class="btns" id="importBtn">Import</button><button class="btnp" id="addStaffBtn">+ Add staff</button></div></div>'+
+    '<table class="adgrid"><thead><tr><th>Name</th><th>Contract</th><th>Skills &amp; training</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function studentTableHTML(){
+  const rows = Object.entries(STUDENTS).map(([k,s])=>{
+    const cw = s.cannotWorkWith.map(id=>'<span class="pilltag warn">\u2718 '+escapeHtml((lsaById[id]||{}).name||id)+'</span>').join('');
+    const pf = (s.prefers||[]).map(id=>'<span class="pilltag soft">\u2605 '+escapeHtml((lsaById[id]||{}).name||id)+'</span>').join('');
+    const rq = s.requires.map(r=>'<span class="pilltag">'+r+'</span>').join('');
+    return '<tr><td><div>'+escapeHtml(s.name)+'</div><div class="mini">Yr '+s.year+' &middot; '+escapeHtml(s.need.replace(/&middot;/g,'\u00b7'))+(s.funded?' &middot; funded':'')+'</div></td>'+
+      '<td>'+escapeHtml((lsaById[s.keyWorker]||{}).name||'\u2014')+'</td>'+
+      '<td>'+(rq||'<span class="mini">\u2014</span>')+'</td>'+
+      '<td>'+((cw||pf)?(cw+pf):'<span class="mini">none</span>')+'</td>'+
+      '<td><div class="rowact"><button class="lnk" data-edit-stu="'+k+'">Edit</button><button class="lnk del" data-del-stu="'+k+'">Remove</button></div></td></tr>';
+  }).join('');
+  return '<div class="adminhead"><h2>Students with support</h2><div class="tools"><button class="btnp" id="addStuBtn">+ Add student</button></div></div>'+
+    '<table class="adgrid"><thead><tr><th>Student</th><th>Key worker</th><th>Needs</th><th>Constraints / preferences</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function excursionTableHTML(){
+  const rows = excursions.length ? excursions.map(x=>
+    '<tr><td>'+escapeHtml(x.name)+'</td>'+
+    '<td>'+x.periods.map(p=>'<span class="pilltag">'+periodById[p].label+'</span>').join('')+'</td>'+
+    '<td>'+(x.students.map(s=>escapeHtml((STUDENTS[s]||{}).name||s)).join(', ')||'<span class="mini">none</span>')+'</td>'+
+    '<td>'+(x.staff.map(s=>escapeHtml((lsaById[s]||{}).name||s)).join(', ')||'<span class="mini">none</span>')+'</td>'+
+    '<td><div class="rowact"><button class="lnk del" data-del-exc="'+x.id+'">Remove</button></div></td></tr>'
+  ).join('') : '<tr><td colspan="5"><span class="mini">No excursions today.</span></td></tr>';
+  return '<div class="adminhead"><h2>Excursions today</h2><div class="tools"><button class="btnp" id="addExcBtn">+ Add excursion</button></div></div>'+
+    '<table class="adgrid"><thead><tr><th>Excursion</th><th>Periods</th><th>Students off-site</th><th>LSAs off-site</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div class="fhint" style="margin-top:10px">Excursions are for today only and travel in the shared link. Students off-site need no support; LSAs off-site can&rsquo;t be used for cover, and any 1:1 aide whose student is out is freed up.</div>';
+}
+
+function wireAdminBody(){
+  const g = id => document.getElementById(id);
+  if (g('addStaffBtn')) g('addStaffBtn').onclick = ()=> openStaffForm(null);
+  if (g('exportBtn')) g('exportBtn').onclick = exportData;
+  if (g('importBtn')) g('importBtn').onclick = importData;
+  if (g('addStuBtn')) g('addStuBtn').onclick = ()=> openStudentForm(null);
+  if (g('addExcBtn')) g('addExcBtn').onclick = ()=> openExcursionForm();
+  document.querySelectorAll('[data-edit-staff]').forEach(b=> b.onclick=()=>openStaffForm(b.dataset.editStaff));
+  document.querySelectorAll('[data-del-staff]').forEach(b=> b.onclick=()=>removeStaff(b.dataset.delStaff));
+  document.querySelectorAll('[data-edit-stu]').forEach(b=> b.onclick=()=>openStudentForm(b.dataset.editStu));
+  document.querySelectorAll('[data-del-stu]').forEach(b=> b.onclick=()=>removeStudent(b.dataset.delStu));
+  document.querySelectorAll('[data-del-exc]').forEach(b=> b.onclick=()=>removeExcursion(b.dataset.delExc));
+}
+
+/* form modal */
+function openForm(title, bodyHtml, onSave){
+  document.getElementById('fName').textContent = title;
+  document.getElementById('fBody').innerHTML = bodyHtml + '<div class="factions"><button class="btns" id="fCancel">Cancel</button><button class="btnp" id="fSave">Save</button></div>';
+  document.getElementById('fscrim').classList.add('open');
+  document.getElementById('fCancel').onclick = closeForm;
+  document.getElementById('fSave').onclick = ()=>{ if (onSave()!==false) closeForm(); };
+  document.querySelectorAll('#fBody .chip2').forEach(c=> c.onclick=()=> c.classList.toggle('on'));
+}
+function closeForm(){ document.getElementById('fscrim').classList.remove('open'); }
+document.getElementById('fClose').onclick = closeForm;
+document.getElementById('fscrim').addEventListener('click', e=>{ if(e.target.id==='fscrim') closeForm(); });
+
+function chipSet(name, options, selected){
+  return '<div class="chips2" data-chipset="'+name+'">'+options.map(o=>{
+    const val=o.val||o, lab=o.lab||o, cls=o.cls?(' '+o.cls):'';
+    return '<span class="chip2'+cls+(selected.includes(val)?' on':'')+'" data-val="'+val+'">'+escapeHtml(lab)+'</span>';
+  }).join('')+'</div>';
+}
+function readChips(name){ return [...document.querySelectorAll('[data-chipset="'+name+'"] .chip2.on')].map(c=>c.dataset.val); }
+
+function openStaffForm(id){
+  const l = id ? lsaById[id] : {name:'',contract:'Full',skills:[]};
+  const body =
+    '<div class="frow"><label>Name</label><input type="text" id="sfName" value="'+escapeHtml(l.name)+'" placeholder="First name + initial"></div>'+
+    '<div class="frow"><label>Contract</label><select id="sfContract">'+CONTRACTS.map(c=>'<option'+(l.contract===c?' selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
+    '<div class="frow"><label>Skills &amp; training</label>'+chipSet('sfSkills', SKILL_OPTIONS, l.skills)+'<div class="fhint">These drive cover matching. Keep the vocabulary consistent.</div></div>';
+  openForm(id?'Edit staff':'Add staff', body, ()=>{
+    const name = document.getElementById('sfName').value.trim(); if(!name) return false;
+    const contract = document.getElementById('sfContract').value;
+    const skills = readChips('sfSkills');
+    if (id){ l.name=name; l.contract=contract; l.amOnly=(contract==='AM only'); l.skills=skills; }
+    else {
+      const nid = uid('s');
+      const prep = {room:'\u2014',subject:'Prep / float',type:'prep'};
+      const day = {reg:{room:'TBD',subject:'Form',type:'class'},p1:{...prep},p2:{...prep},rec:{...prep},p3:{...prep},p4:{...prep},lun:{...prep},p5:{...prep}};
+      if (contract==='AM only'){ delete day.p3;delete day.p4;delete day.lun;delete day.p5; }
+      if (contract==='PM only'){ delete day.reg;delete day.p1;delete day.p2;delete day.rec; }
+      LSAS.push({id:nid,name,contract,amOnly:(contract==='AM only'),skills});
+      ALLOC[nid]=day;
+    }
+    afterDataChange();
+  });
+}
+
+function removeStaff(id){
+  const l = lsaById[id]; if(!l) return;
+  const kw = Object.entries(STUDENTS).find(([,s])=>s.keyWorker===id);
+  if (kw){ alert(l.name+' is '+kw[1].name+'\u2019s key worker \u2014 reassign that student before removing.'); return; }
+  if (!confirm('Remove '+l.name+' from the team?')) return;
+  LSAS = LSAS.filter(x=>x.id!==id); delete ALLOC[id];
+  away.delete(id); excursions.forEach(x=> x.staff = x.staff.filter(s=>s!==id));
+  afterDataChange();
+}
+
+function openStudentForm(key){
+  const s = key ? STUDENTS[key] : {name:'',year:7,need:'',priority:'high',requires:[],cannotWorkWith:[],prefers:[],keyWorker:(LSAS[0]||{}).id,funded:false,fundedPeriods:[]};
+  const staffOpts = LSAS.map(l=>({val:l.id,lab:l.name}));
+  const teaching = PERIODS.filter(p=>!p.brk).map(p=>({val:p.id,lab:p.label}));
+  const body =
+    '<div class="ftwo"><div class="frow"><label>Name</label><input type="text" id="stName" value="'+escapeHtml(s.name)+'"></div>'+
+      '<div class="frow"><label>Year</label><input type="number" id="stYear" min="7" max="12" value="'+s.year+'"></div></div>'+
+    '<div class="frow"><label>Need / plan summary</label><input type="text" id="stNeed" value="'+escapeHtml(s.need.replace(/&middot;/g,'\u00b7'))+'" placeholder="e.g. ILP \u00b7 funded 1:1"></div>'+
+    '<div class="ftwo"><div class="frow"><label>Priority</label><select id="stPrio"><option value="high"'+(s.priority==='high'?' selected':'')+'>Essential \u2014 1:1 / medical / 2-staff</option><option value="medium"'+(s.priority!=='high'?' selected':'')+'>Core \u2014 key-worker / preference</option></select></div>'+
+      '<div class="frow"><label>Key worker</label><select id="stKW">'+staffOpts.map(o=>'<option value="'+o.val+'"'+(s.keyWorker===o.val?' selected':'')+'>'+escapeHtml(o.lab)+'</option>').join('')+'</select></div></div>'+
+    '<div class="frow"><label>Required skills \u2014 hard match for cover</label>'+chipSet('stReq', SKILL_OPTIONS, s.requires)+'</div>'+
+    '<div class="frow"><label>Can&rsquo;t work with \u2014 hard, never auto-assigned</label>'+chipSet('stCW', staffOpts.map(o=>({val:o.val,lab:o.lab,cls:'danger'})), s.cannotWorkWith)+'</div>'+
+    '<div class="frow"><label>Preferred staff \u2014 soft</label>'+chipSet('stPref', staffOpts.map(o=>({val:o.val,lab:o.lab,cls:'soft'})), s.prefers||[])+'</div>'+
+    '<div class="frow"><label>Funded \u2014 track NCCD delivery</label>'+chipSet('stFund',[{val:'yes',lab:'Funded support'}], s.funded?['yes']:[])+'</div>'+
+    (key?'':'<div class="frow"><label>Support periods \u2014 schedules key worker for 1:1</label>'+chipSet('stSched', teaching, [])+'<div class="fhint">For a new student, ticking periods sets their key worker&rsquo;s timetable to 1:1 in those slots (rooms left as TBD).</div></div>');
+  openForm(key?'Edit student':'Add student', body, ()=>{
+    const name=document.getElementById('stName').value.trim(); if(!name) return false;
+    const year=parseInt(document.getElementById('stYear').value,10)||7;
+    const need=document.getElementById('stNeed').value.trim()||'Support';
+    const priority=document.getElementById('stPrio').value;
+    const keyWorker=document.getElementById('stKW').value;
+    const requires=readChips('stReq');
+    const cannotWorkWith=readChips('stCW');
+    const prefers=readChips('stPref');
+    const funded=readChips('stFund').includes('yes');
+    if (key){
+      const o=STUDENTS[key]; Object.assign(o,{name,year,need,priority,keyWorker,requires,cannotWorkWith,prefers,funded});
+      if (funded && (!o.fundedPeriods || !o.fundedPeriods.length)) o.fundedPeriods = PERIODS.filter(p=>!p.brk).map(p=>p.id);
+    } else {
+      const nk = uid('st');
+      const sched = readChips('stSched');
+      STUDENTS[nk] = {name,year,need,priority,keyWorker,requires,cannotWorkWith,prefers,funded, fundedPeriods: funded?(sched.length?sched:PERIODS.filter(p=>!p.brk).map(p=>p.id)):[]};
+      sched.forEach(pid=>{ ALLOC[keyWorker]=ALLOC[keyWorker]||{}; ALLOC[keyWorker][pid]={room:'TBD',subject:'Support',student:nk,type:'oto'}; });
+    }
+    afterDataChange();
+  });
+}
+
+function removeStudent(key){
+  const s=STUDENTS[key]; if(!s) return;
+  if (!confirm('Remove '+s.name+'?')) return;
+  delete STUDENTS[key];
+  Object.values(ALLOC).forEach(day=> Object.keys(day).forEach(pid=>{ if(day[pid].student===key) delete day[pid].student; }));
+  excursions.forEach(x=> x.students = x.students.filter(st=>st!==key));
+  afterDataChange();
+}
+
+function openExcursionForm(){
+  const studentOpts = Object.entries(STUDENTS).map(([k,s])=>({val:k,lab:s.name}));
+  const staffOpts = LSAS.map(l=>({val:l.id,lab:l.name}));
+  const periodOpts = PERIODS.map(p=>({val:p.id,lab:p.label}));
+  const body =
+    '<div class="frow"><label>Excursion name</label><input type="text" id="exName" placeholder="e.g. Year 9 Geography fieldwork"></div>'+
+    '<div class="frow"><label>Periods off-site</label>'+chipSet('exPer', periodOpts, [])+'</div>'+
+    '<div class="frow"><label>Students attending</label>'+chipSet('exStu', studentOpts, [])+'<div class="fhint">No in-school support needed while they\u2019re out.</div></div>'+
+    '<div class="frow"><label>LSAs attending</label>'+chipSet('exStaff', staffOpts, [])+'<div class="fhint">Off-site \u2014 unavailable for cover.</div></div>';
+  openForm('Add excursion', body, ()=>{
+    const name=document.getElementById('exName').value.trim()||'Excursion';
+    const periods=readChips('exPer'); if(!periods.length){ alert('Pick at least one period.'); return false; }
+    excursions.push({id:'x'+Date.now(), name, periods, students:readChips('exStu'), staff:readChips('exStaff')});
+    syncHash(); renderAdmin(); renderAll();
+  });
+}
+function removeExcursion(id){ excursions = excursions.filter(x=>x.id!==id); syncHash(); renderAdmin(); renderAll(); }
+
+function exportData(){
+  try{
+    const blob = new Blob([JSON.stringify({LSAS,STUDENTS,ALLOC},null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='sfx-lsa-data.json'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }catch(e){ alert('Export not available here \u2014 try the deployed site.'); }
+}
+function importData(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const rd=new FileReader();
+    rd.onload=()=>{ try{ const o=JSON.parse(rd.result); if(o.LSAS&&o.STUDENTS&&o.ALLOC){ LSAS=o.LSAS; STUDENTS=o.STUDENTS; ALLOC=o.ALLOC; away.clear(); afterDataChange(); alert('Data imported.'); } else alert('That file doesn\u2019t look like an LSA Day Board export.'); }catch(e){ alert('Could not read that file.'); } };
+    rd.readAsText(f); };
+  inp.click();
+}
+
+function renderAll(){
+  const plan = applyOverrides(planDay());
+  renderTabs();
+  renderRoster();
+  renderBoard(plan);
+  renderCompliance(plan);
+  renderAdjustments(plan);
+}
+
+document.getElementById('staffSearch').addEventListener('input', e=>{ staffQuery = e.target.value.trim().toLowerCase(); renderRoster(); });
+document.querySelectorAll('.boardfilter .fbtn').forEach(b=> b.onclick = ()=>{
+  boardFilter = b.dataset.f;
+  document.querySelectorAll('.boardfilter .fbtn').forEach(x=> x.classList.toggle('active', x===b));
+  renderAll();
+});
+document.getElementById('manageBtn').onclick = ()=> setView(view==='admin' ? 'board' : 'admin');
+
+loadData();
+rebuildIndexes();
+readHash();
+renderAll();
+</script>
+</body>
+</html>
